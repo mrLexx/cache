@@ -132,71 +132,21 @@ class JCCacheTest extends PHPUnit_Framework_TestCase
 
         $jccache = new JCCache(array(array('host' => 'memcache_server'),), $namespace);
 
-        /**
-         * Добавление с тегом
-         */
-        $jccache->setTags($arTags[0])
+
+        $jccache->addTags(array($arTags[0]))
             ->set($arKeys[0], $arVals[0]);
-        $jccache->setTags($arTags[1])
+        $jccache->addTags(array($arTags[1]))
             ->set($arKeys[1], $arVals[1]);
-        $jccache->setTags(array($arTags[0], $arTags[1], $arTags[2]))
+        $jccache->addTags(array($arTags[0], $arTags[1], $arTags[2]))
             ->set($arKeys[2], $arVals[2]);
 
-        $stack[] = array(
-            $jccache->getRawNameKey(array($arKeys[0], $arKeys[2])),
-            current($jccache->getKeysByTags($arTags[0]))
-        );
 
-        $stack[] = array(
-            $jccache->getRawNameKey(array($arKeys[1], $arKeys[2])),
-            current($jccache->getKeysByTags($arTags[1]))
-        );
+        $jccache->rmTags($arTags[1]);
 
-        $stack[] = array(
-            $jccache->getRawNameKey(array($arKeys[2])),
-            current($jccache->getKeysByTags($arTags[2]))
-        );
-
-
-        /**
-         * Удаление одиночного тега
-         */
-        /* *
-        $jccache->rmByTags(array($arTags[0]));
-        $stack[] = array(false, $jccache->get($arKeys[0]));
-        $stack[] = array($arVals[1], $jccache->get($arKeys[1]));
+        $jccache->get($arKeys[2]);
+        $stack[] = array($arVals[0], $jccache->get($arKeys[0]));
+        $stack[] = array(false, $jccache->get($arKeys[1]));
         $stack[] = array(false, $jccache->get($arKeys[2]));
-        // */
-
-
-        /**
-         * Удаление нескольких тегов
-         */
-        $namespace = 'testJCCache' . time();
-
-        $jccache = new JCCache(array(array('host' => 'memcache_server'),), $namespace);
-        $jccache->setTags($arTags[0])->set($arKeys[0], $arVals[0]);
-        $jccache->setTags($arTags[1])->set($arKeys[1], $arVals[1]);
-        $jccache->setTags(array($arTags[0], $arTags[1], $arTags[2]))->set($arKeys[2], $arVals[2]);
-
-        /* *
-        $jccache->rmByTags(array($arTags[1], $arTags[2]));
-
-        $stack[] = array(
-            $jccache->getRawNameKey(array($arKeys[0], $arKeys[2])),
-            current($jccache->getKeysByTags($arTags[0]))
-        );
-
-        $stack[] = array(
-            $jccache->getRawNameKey(array($arKeys[1])),
-            current($jccache->getKeysByTags($arTags[1]))
-        );
-
-        $stack[] = array(
-            false,
-            current($jccache->getKeysByTags($arTags[2]))
-        );
-        // */
 
         return $stack;
     }
