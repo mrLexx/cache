@@ -1,14 +1,16 @@
 <?php
-require_once 'vendor/autoload.php';
+require_once __DIR__ . '/../../vendor/autoload.php';
 
 class JCCacheTest extends PHPUnit_Framework_TestCase
 {
     public function testCompleteHostsParam()
     {
-        $jccache = new JCCache(array(
-            array('host' => 'memcache_server', 'persistent' => true),
-            array('port' => 11211, 'host' => 'memcache_server'),
-        ));
+        $jccache = new JCCache(
+            array(
+                array('host' => 'memcache_server', 'persistent' => true),
+                array('port' => 11211, 'host' => 'memcache_server'),
+            )
+        );
 
         $this->assertEquals(
             array(
