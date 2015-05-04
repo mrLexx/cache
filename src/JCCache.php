@@ -371,9 +371,9 @@ class JCCache
      */
     private function prepareRawNameTags($tags)
     {
-        if (is_array($tags) ) {
+        if (is_array($tags)) {
             $new_tags = array();
-            if(count($tags) > 0){
+            if (count($tags) > 0) {
                 foreach ($tags as $k => $v) {
                     $new_tags[$v] = '{tags_' . $v . '}';
                 }
