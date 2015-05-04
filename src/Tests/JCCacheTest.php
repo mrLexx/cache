@@ -23,6 +23,8 @@ class JCCacheTest extends PHPUnit_Framework_TestCase
 
     /**
      * @dataProvider providerCache
+     * @param $a
+     * @param $b
      */
     public function testCache($a, $b)
     {
