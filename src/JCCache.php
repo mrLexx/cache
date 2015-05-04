@@ -113,6 +113,8 @@ class JCCache
      */
     public function set($key, $value, $ttl_seconds = 0, $flag = 0)
     {
+        $result = false;
+
         if (($flag & JCCACHE_ADDRAW) > 0 || ($flag & JCCACHE_ONLYRAW) > 0) {
             $result = $this->mc->set($this->getNamespace() . $key, $value, 0, $ttl_seconds);
 
@@ -193,7 +195,7 @@ class JCCache
         //$this->log(array($tags, $this->prepareRawNameTags($tags)), 'Проверяем');
 
         if (count($tags) > 0) {
-            $arTags = array();
+            //$arTags = array();
             // 1. получаем список тегов из кеша
             $current_in_cache = $this->mc->get($this->prepareRawNameTags($tags));
 
@@ -229,7 +231,6 @@ class JCCache
      */
     public function rmTags($tags)
     {
-        //! @todo dfdf fd
         $this->setTags($tags);
 
     }
@@ -370,13 +371,15 @@ class JCCache
      */
     private function prepareRawNameTags($tags)
     {
-        if (is_array($tags) && count($tags) > 0) {
+        if (is_array($tags) ) {
             $new_tags = array();
-            foreach ($tags as $k => $v) {
-                $new_tags[$v] = '{tags_' . $v . '}';
+            if(count($tags) > 0){
+                foreach ($tags as $k => $v) {
+                    $new_tags[$v] = '{tags_' . $v . '}';
+                }
             }
 
-        } elseif (!is_array($tags)) {
+        } else {
             $new_tags = '{tags_' . (string)$tags . '}';
         }
 
