@@ -59,7 +59,6 @@ class JCCache
         foreach ($this->hosts as $h) {
             if (!$this->mc->addserver($h['host'], $h['port'], $h['persistent'])) {
                 $this->connected = false;
-            } else {
             }
         }
         if ($namespace != '') {
