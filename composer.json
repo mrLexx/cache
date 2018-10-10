@@ -1,5 +1,5 @@
 {
-    "name": "jc/cache",
+    "name": "just-communication/cache",
     "description": "Cache library for JC's project",
     "minimum-stability": "dev",
     "type": "library",
