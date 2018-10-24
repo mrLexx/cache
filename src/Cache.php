@@ -1,14 +1,16 @@
 <?php
 
-/**
- * Class JCCache
- */
-define ('JCCACHE_ONLYRAW', 1);
-define ('JCCACHE_ADDRAW', 2);
-define ('JCCACHE_FROMRAW', 4);
+namespace JustCommunication;
 
-class JCCache
+define('JCCACHE_ONLYRAW', 1);
+define('JCCACHE_ADDRAW', 2);
+define('JCCACHE_FROMRAW', 4);
+
+class Cache
 {
+    const JCCACHE_ONLYRAW = 1;
+    const JCCACHE_ADDRAW = 2;
+    const JCCACHE_FROMRAW = 4;
     /**
      * массив с текущими тегами для кеша, сбрасывается после работы с кешем
      * @var array
@@ -28,7 +30,7 @@ class JCCache
     private $connected = false;
 
     /**
-     * @var Memcache
+     * @var \Memcache
      */
     private $mc;
 
@@ -54,7 +56,7 @@ class JCCache
             $hosts,
             array('host' => '127.0.0.1', 'port' => 11211, 'persistent' => false)
         );
-        $this->mc = new Memcache;
+        $this->mc = new \Memcache();
         $this->connected = true;
         foreach ($this->hosts as $h) {
             if (!$this->mc->addserver($h['host'], $h['port'], $h['persistent'])) {
@@ -114,12 +116,12 @@ class JCCache
     {
         $result = false;
 
-        if (($flag & JCCACHE_ADDRAW) > 0 || ($flag & JCCACHE_ONLYRAW) > 0) {
+        if (($flag & self::JCCACHE_ADDRAW) > 0 || ($flag & self::JCCACHE_ONLYRAW) > 0) {
             $result = $this->mc->set($this->getNamespace() . $key, $value, 0, $ttl_seconds);
 
         }
 
-        if (($flag & JCCACHE_ONLYRAW) == 0) {
+        if (($flag & self::JCCACHE_ONLYRAW) == 0) {
 
             $key = $this->prepareNamespace($key);
             $value = array(
@@ -146,7 +148,7 @@ class JCCache
     public function get($key, $flag = 0)
     {
 
-        if (($flag & JCCACHE_FROMRAW) > 0) {
+        if (($flag & self::JCCACHE_FROMRAW) > 0) {
             $result = $data = $this->mc->get($this->getNamespace() . $key);
 
         } else {
@@ -269,7 +271,7 @@ class JCCache
 
     public function rm($key, $ttl_seconds = 0, $flag = 0)
     {
-        if (($flag & JCCACHE_FROMRAW) > 0) {
+        if (($flag & self::JCCACHE_FROMRAW) > 0) {
             $key = $this->prepareNamespace($this->getNamespace() . $key);
         } else {
             $key = $this->prepareNamespace($key);

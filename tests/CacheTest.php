@@ -1,21 +1,22 @@
 <?php
-require_once __DIR__ . '/../../vendor/autoload.php';
 
-class JCCacheTest extends PHPUnit_Framework_TestCase
+use PHPUnit\Framework\TestCase;
+
+final class CacheTest extends TestCase
 {
     public function testCompleteHostsParam()
     {
-        $jccache = new JCCache(
+        $jccache = new \JustCommunication\Cache(
             array(
-                array('host' => 'memcache_server', 'persistent' => true),
-                array('port' => 11211, 'host' => 'memcache_server'),
+                array('host' => 'localhost', 'persistent' => true),
+                array('port' => 11211, 'host' => 'localhost'),
             )
         );
 
         $this->assertEquals(
             array(
-                array('host' => 'memcache_server', 'persistent' => true, 'port' => 11211),
-                array('port' => 11211, 'host' => 'memcache_server', 'persistent' => false),
+                array('host' => 'localhost', 'persistent' => true, 'port' => 11211),
+                array('port' => 11211, 'host' => 'localhost', 'persistent' => false),
             ),
             $jccache->getHosts()
         );
@@ -43,7 +44,7 @@ class JCCacheTest extends PHPUnit_Framework_TestCase
         $key_empty = $this->randomString();
         $namespace = 'testJCCache' . date("Y-m-d H:i:s u") . $this->randomString();
 
-        $jccache = new JCCache(array(array('host' => 'memcache_server'),), $namespace);
+        $jccache = new \JustCommunication\Cache(array(array('host' => 'localhost'),), $namespace);
 
         $jccache->set($key, $val);
 
@@ -83,8 +84,8 @@ class JCCacheTest extends PHPUnit_Framework_TestCase
         $namespace01 = 'testJCCache' . date("Y-m-d H:i:s u") . $this->randomString();
         $namespace02 = 'testJCCache' . date("Y-m-d H:i:s u") . $this->randomString();
 
-        $jccache01 = new JCCache(array(array('host' => 'memcache_server'),));
-        $jccache02 = new JCCache(array(array('host' => 'memcache_server'),));
+        $jccache01 = new \JustCommunication\Cache(array(array('host' => 'localhost'),));
+        $jccache02 = new \JustCommunication\Cache(array(array('host' => 'localhost'),));
 
         $jccache01->set($key, $val01);
         $stack[] = array($val01, $jccache01->get($key));
@@ -134,7 +135,7 @@ class JCCacheTest extends PHPUnit_Framework_TestCase
         }
         $namespace = 'testJCCache' . time();
 
-        $jccache = new JCCache(array(array('host' => 'memcache_server'),), $namespace);
+        $jccache = new \JustCommunication\Cache(array(array('host' => 'localhost'),), $namespace);
 
 
         $jccache->addTags(array($arTags[0]))
