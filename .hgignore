@@ -1,5 +1,0 @@
-syntax: glob
-vendor/
-composer.phar
-composer.lock
-log.txt
