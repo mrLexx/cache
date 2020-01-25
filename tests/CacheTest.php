@@ -1,12 +1,13 @@
 <?php
 
+use JustCommunication\Cache;
 use PHPUnit\Framework\TestCase;
 
 final class CacheTest extends TestCase
 {
     public function testCompleteHostsParam()
     {
-        $jccache = new \JustCommunication\Cache(
+        $cache = new Cache(
             array(
                 array('host' => 'localhost', 'persistent' => true),
                 array('port' => 11211, 'host' => 'localhost'),
@@ -18,7 +19,7 @@ final class CacheTest extends TestCase
                 array('host' => 'localhost', 'persistent' => true, 'port' => 11211),
                 array('port' => 11211, 'host' => 'localhost', 'persistent' => false),
             ),
-            $jccache->getHosts()
+            $cache->getHosts()
         );
     }
 
@@ -44,20 +45,20 @@ final class CacheTest extends TestCase
         $key_empty = $this->randomString();
         $namespace = 'testJCCache' . date("Y-m-d H:i:s u") . $this->randomString();
 
-        $jccache = new \JustCommunication\Cache(array(array('host' => 'localhost'),), $namespace);
+        $cache = new Cache(array(array('host' => 'localhost'),), $namespace);
 
-        $jccache->set($key, $val);
+        $cache->set($key, $val);
 
-        $stack[] = array($val, $jccache->get($key));
+        $stack[] = array($val, $cache->get($key));
 
-        $jccache->set($key_null, null);
-        $jccache->set($key_false, false);
-        $jccache->set($key_emstring, '');
+        $cache->set($key_null, null);
+        $cache->set($key_false, false);
+        $cache->set($key_emstring, '');
 
-        $stack[] = array(null, $jccache->get($key_null));
-        $stack[] = array(false, $jccache->get($key_false));
-        $stack[] = array('', $jccache->get($key_emstring));
-        $stack[] = array(false, $jccache->get($key_empty));
+        $stack[] = array(null, $cache->get($key_null));
+        $stack[] = array(false, $cache->get($key_false));
+        $stack[] = array('', $cache->get($key_emstring));
+        $stack[] = array(false, $cache->get($key_empty));
 
         return $stack;
     }
@@ -84,27 +85,27 @@ final class CacheTest extends TestCase
         $namespace01 = 'testJCCache' . date("Y-m-d H:i:s u") . $this->randomString();
         $namespace02 = 'testJCCache' . date("Y-m-d H:i:s u") . $this->randomString();
 
-        $jccache01 = new \JustCommunication\Cache(array(array('host' => 'localhost'),));
-        $jccache02 = new \JustCommunication\Cache(array(array('host' => 'localhost'),));
+        $cache01 = new Cache(array(array('host' => 'localhost'),));
+        $cache02 = new Cache(array(array('host' => 'localhost'),));
 
-        $jccache01->set($key, $val01);
-        $stack[] = array($val01, $jccache01->get($key));
-        $jccache02->set($key, $val02);
-        $stack[] = array($val02, $jccache02->get($key));
-        $stack[] = array($val02, $jccache01->get($key));
+        $cache01->set($key, $val01);
+        $stack[] = array($val01, $cache01->get($key));
+        $cache02->set($key, $val02);
+        $stack[] = array($val02, $cache02->get($key));
+        $stack[] = array($val02, $cache01->get($key));
 
-        $jccache01->setNamespace($namespace01);
-        $jccache02->setNamespace($namespace02);
+        $cache01->setNamespace($namespace01);
+        $cache02->setNamespace($namespace02);
 
-        $jccache01->set($key, $val01);
-        $stack[] = array($val01, $jccache01->get($key));
-        $jccache02->set($key, $val02);
-        $stack[] = array($val02, $jccache02->get($key));
-        $stack[] = array($val01, $jccache01->get($key));
+        $cache01->set($key, $val01);
+        $stack[] = array($val01, $cache01->get($key));
+        $cache02->set($key, $val02);
+        $stack[] = array($val02, $cache02->get($key));
+        $stack[] = array($val01, $cache01->get($key));
 
-        $jccache01->rm($key);
-        $stack[] = array(false, $jccache01->get($key));
-        $stack[] = array($val02, $jccache02->get($key));
+        $cache01->rm($key);
+        $stack[] = array(false, $cache01->get($key));
+        $stack[] = array($val02, $cache02->get($key));
 
         return $stack;
 
@@ -135,23 +136,23 @@ final class CacheTest extends TestCase
         }
         $namespace = 'testJCCache' . time();
 
-        $jccache = new \JustCommunication\Cache(array(array('host' => 'localhost'),), $namespace);
+        $cache = new Cache(array(array('host' => 'localhost'),), $namespace);
 
 
-        $jccache->addTags(array($arTags[0]))
+        $cache->addTags(array($arTags[0]))
             ->set($arKeys[0], $arVals[0]);
-        $jccache->addTags(array($arTags[1]))
+        $cache->addTags(array($arTags[1]))
             ->set($arKeys[1], $arVals[1]);
-        $jccache->addTags(array($arTags[0], $arTags[1], $arTags[2]))
+        $cache->addTags(array($arTags[0], $arTags[1], $arTags[2]))
             ->set($arKeys[2], $arVals[2]);
 
 
-        $jccache->rmTags($arTags[1]);
+        $cache->rmTags($arTags[1]);
 
-        $jccache->get($arKeys[2]);
-        $stack[] = array($arVals[0], $jccache->get($arKeys[0]));
-        $stack[] = array(false, $jccache->get($arKeys[1]));
-        $stack[] = array(false, $jccache->get($arKeys[2]));
+        $cache->get($arKeys[2]);
+        $stack[] = array($arVals[0], $cache->get($arKeys[0]));
+        $stack[] = array(false, $cache->get($arKeys[1]));
+        $stack[] = array(false, $cache->get($arKeys[2]));
 
         return $stack;
     }

@@ -1,6 +1,6 @@
 {
     "name": "just-communication/cache",
-    "description": "Cache library for JC's project",
+    "description": "Memcache library with tags support",
     "minimum-stability": "dev",
     "type": "library",
     "license": "proprietary",
