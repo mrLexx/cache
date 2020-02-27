@@ -274,21 +274,26 @@ class Cache
     /**
      * Удаляет ключ из кеша
      * @param string $key имя ключа
-     * @param int $flag дополнительные параметры. Используйте CACHE_FROMRAW чтобы удалить сырые данные из кеша, но с учетом $this->rawNamespace
+     * @param int $flag дополнительные параметры. Используйте CACHE_ONLYRAW|CACHE_FROMRAW чтобы удалить сырые данные только/также из сырого кеша, но с учетом $this->rawNamespace
      * @return bool
      */
 
     public function rm($key, $flag = 0)
     {
-        if (($flag & self::CACHE_FROMRAW) > 0) {
-            $key = $this->prepareRawNamespace($key);
+
+        if (($flag & self::CACHE_ONLYRAW) > 0) {
+            $return = $this->mc->delete($this->prepareRawNamespace($key));
         } else {
-            $key = $this->prepareNamespace($key);
+
+            $return = $this->mc->delete($this->prepareNamespace($key));
+            if ($return && ($flag & self::CACHE_FROMRAW) > 0) {
+                $return = $this->mc->delete($this->prepareRawNamespace($key));
+            }
         }
 
         $this->resetTags();
 
-        return $this->mc->delete($key);
+        return $return;
 
     }
 
