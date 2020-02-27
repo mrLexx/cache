@@ -8,17 +8,17 @@ final class CacheTest extends TestCase
     public function testCompleteHostsParam()
     {
         $cache = new Cache(
-            array(
-                array('host' => 'localhost', 'persistent' => true),
-                array('port' => 11211, 'host' => 'localhost'),
-            )
+            [
+                ['host' => 'localhost', 'persistent' => true],
+                ['port' => 11211, 'host' => 'localhost'],
+            ]
         );
 
         $this->assertEquals(
-            array(
-                array('host' => 'localhost', 'persistent' => true, 'port' => 11211),
-                array('port' => 11211, 'host' => 'localhost', 'persistent' => false),
-            ),
+            [
+                ['host' => 'localhost', 'persistent' => true, 'port' => 11211],
+                ['port' => 11211, 'host' => 'localhost', 'persistent' => false],
+            ],
             $cache->getHosts()
         );
     }
@@ -35,7 +35,7 @@ final class CacheTest extends TestCase
 
     public function providerCache()
     {
-        $stack = array();
+        $stack = [];
 
         $key = $this->randomString();
         $val = $this->randomString();
@@ -45,20 +45,57 @@ final class CacheTest extends TestCase
         $key_empty = $this->randomString();
         $namespace = 'testJCCache' . date("Y-m-d H:i:s u") . $this->randomString();
 
-        $cache = new Cache(array(array('host' => 'localhost'),), $namespace);
+        $cache = new Cache([['host' => 'localhost'],], $namespace);
 
         $cache->set($key, $val);
 
-        $stack[] = array($val, $cache->get($key));
+        $stack[] = [$val, $cache->get($key)];
 
         $cache->set($key_null, null);
         $cache->set($key_false, false);
         $cache->set($key_emstring, '');
 
-        $stack[] = array(null, $cache->get($key_null));
-        $stack[] = array(false, $cache->get($key_false));
-        $stack[] = array('', $cache->get($key_emstring));
-        $stack[] = array(false, $cache->get($key_empty));
+        $stack[] = [null, $cache->get($key_null)];
+        $stack[] = [false, $cache->get($key_false)];
+        $stack[] = ['', $cache->get($key_emstring)];
+        $stack[] = [false, $cache->get($key_empty)];
+
+        return $stack;
+    }
+
+    /**
+     * @dataProvider providerRaw
+     * @param $a
+     * @param $b
+     */
+    public function testRaw($a, $b)
+    {
+        $this->assertEquals($a, $b);
+    }
+
+    public function providerRaw()
+    {
+        $stack = [];
+
+        $key = $this->randomString();
+
+        $val01 = 'Raw_' . $this->randomString();
+        $val02 = 'Usual_' . $this->randomString();
+
+        $this->assertNotEquals($val01, $val02);
+
+        $cache = new Cache([['host' => 'localhost'],]);
+
+        $cache->set($key, $val01, 0, Cache::CACHE_ONLYRAW);
+        $cache->set($key, $val02);
+
+        $cache->get($key, Cache::CACHE_FROMRAW);
+
+        $this->assertNotEquals($cache->get($key, Cache::CACHE_FROMRAW), $cache->get($key));
+
+        $stack[] = [$val01, $cache->get($key, Cache::CACHE_FROMRAW)];
+        $stack[] = [$val02, $cache->get($key)];
+
 
         return $stack;
     }
@@ -75,7 +112,7 @@ final class CacheTest extends TestCase
 
     public function providerNamespaces()
     {
-        $stack = array();
+        $stack = [];
         $key = $this->randomString();
 
         $val01 = $this->randomString();
@@ -85,27 +122,27 @@ final class CacheTest extends TestCase
         $namespace01 = 'testJCCache' . date("Y-m-d H:i:s u") . $this->randomString();
         $namespace02 = 'testJCCache' . date("Y-m-d H:i:s u") . $this->randomString();
 
-        $cache01 = new Cache(array(array('host' => 'localhost'),));
-        $cache02 = new Cache(array(array('host' => 'localhost'),));
+        $cache01 = new Cache([['host' => 'localhost'],]);
+        $cache02 = new Cache([['host' => 'localhost'],]);
 
         $cache01->set($key, $val01);
-        $stack[] = array($val01, $cache01->get($key));
+        $stack[] = [$val01, $cache01->get($key)];
         $cache02->set($key, $val02);
-        $stack[] = array($val02, $cache02->get($key));
-        $stack[] = array($val02, $cache01->get($key));
+        $stack[] = [$val02, $cache02->get($key)];
+        $stack[] = [$val02, $cache01->get($key)];
 
         $cache01->setNamespace($namespace01);
         $cache02->setNamespace($namespace02);
 
         $cache01->set($key, $val01);
-        $stack[] = array($val01, $cache01->get($key));
+        $stack[] = [$val01, $cache01->get($key)];
         $cache02->set($key, $val02);
-        $stack[] = array($val02, $cache02->get($key));
-        $stack[] = array($val01, $cache01->get($key));
+        $stack[] = [$val02, $cache02->get($key)];
+        $stack[] = [$val01, $cache01->get($key)];
 
         $cache01->rm($key);
-        $stack[] = array(false, $cache01->get($key));
-        $stack[] = array($val02, $cache02->get($key));
+        $stack[] = [false, $cache01->get($key)];
+        $stack[] = [$val02, $cache02->get($key)];
 
         return $stack;
 
@@ -123,11 +160,11 @@ final class CacheTest extends TestCase
 
     public function providerTags()
     {
-        $stack = array();
+        $stack = [];
 
-        $arKeys = array();
-        $arVals = array();
-        $arTags = array();
+        $arKeys = [];
+        $arVals = [];
+        $arTags = [];
         for ($i = 0; $i < 5; $i++) {
             $arKeys[] = 'key0' . $i;
             $arVals[] = 'val0' . $i;
@@ -136,23 +173,23 @@ final class CacheTest extends TestCase
         }
         $namespace = 'testJCCache' . time();
 
-        $cache = new Cache(array(array('host' => 'localhost'),), $namespace);
+        $cache = new Cache([['host' => 'localhost'],], $namespace);
 
 
-        $cache->addTags(array($arTags[0]))
+        $cache->addTags([$arTags[0]])
             ->set($arKeys[0], $arVals[0]);
-        $cache->addTags(array($arTags[1]))
+        $cache->addTags([$arTags[1]])
             ->set($arKeys[1], $arVals[1]);
-        $cache->addTags(array($arTags[0], $arTags[1], $arTags[2]))
+        $cache->addTags([$arTags[0], $arTags[1], $arTags[2]])
             ->set($arKeys[2], $arVals[2]);
 
 
         $cache->rmTags($arTags[1]);
 
         $cache->get($arKeys[2]);
-        $stack[] = array($arVals[0], $cache->get($arKeys[0]));
-        $stack[] = array(false, $cache->get($arKeys[1]));
-        $stack[] = array(false, $cache->get($arKeys[2]));
+        $stack[] = [$arVals[0], $cache->get($arKeys[0])];
+        $stack[] = [false, $cache->get($arKeys[1])];
+        $stack[] = [false, $cache->get($arKeys[2])];
 
         return $stack;
     }

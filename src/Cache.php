@@ -10,17 +10,25 @@ class Cache
     const CACHE_ONLYRAW = 1;
     const CACHE_ADDRAW = 2;
     const CACHE_FROMRAW = 4;
+
     /**
      * массив с текущими тегами для кеша, сбрасывается после работы с кешем
      * @var array
      */
-    private $tags = array();
+    private $tags = [];
 
     /**
      * текущее пространство имен для кеша
      * @var string
      */
     private $namespace = '';
+    private $rawNamespace = '';
+
+    /**
+     * текущее пространство имен для кеша
+     * @var string
+     */
+    private $protectedNamespace = 'just-communication/cache';
 
     /**
      * состояние коннекта к кешу
@@ -37,23 +45,26 @@ class Cache
      * список хостов с кешем
      * @var array
      */
-    private $hosts = array();
+    private $hosts = [];
 
     /**
      * если true - то выводит логи в поток
      * @var bool
      */
-    private $loging = false;
+    private $logging = false;
 
     /**
-     * @param array $hosts массив с хостами для подключания
+     * @param array $hosts = [
+     *     ['host' => 'localhost', 'port' => 11211, 'persistent' => false],
+     * ] массив с хостами для подключания
      * @param string $namespace пространство имен
+     * @param string $rawNamespace
      */
-    public function __construct($hosts = array(), $namespace = '')
+    public function __construct($hosts = [], $namespace = '', $rawNamespace = '')
     {
         $this->hosts = $this->checkHosts(
             $hosts,
-            array('host' => '127.0.0.1', 'port' => 11211, 'persistent' => false)
+            ['host' => '127.0.0.1', 'port' => 11211, 'persistent' => false]
         );
         $this->mc = new Memcache();
         $this->connected = true;
@@ -64,6 +75,14 @@ class Cache
         }
         if ($namespace != '') {
             $this->setNamespace($namespace);
+        } else {
+            $this->setNamespace('');
+        }
+
+        if ($rawNamespace != '') {
+            $this->setRawNamespace($rawNamespace);
+        } else {
+            $this->setRawNamespace('');
         }
 
     }
@@ -96,7 +115,7 @@ class Cache
             }
 
         } else {
-            $hosts = array($def);
+            $hosts = [$def];
         }
 
         return $hosts;
@@ -116,18 +135,16 @@ class Cache
         $result = false;
 
         if (($flag & self::CACHE_ADDRAW) > 0 || ($flag & self::CACHE_ONLYRAW) > 0) {
-            $result = $this->mc->set($this->getNamespace() . $key, $value, 0, $ttl_seconds);
-
+            $result = $this->mc->set($this->prepareRawNamespace($key), $value, 0, $ttl_seconds);
         }
 
         if (($flag & self::CACHE_ONLYRAW) == 0) {
 
             $key = $this->prepareNamespace($key);
-            $value = array(
+            $value = [
                 'data' => $value,
                 'tags' => $this->getTagsState($this->tags),
-            );
-
+            ];
 
             $result = $this->mc->set($key, $value, 0, $ttl_seconds);
         }
@@ -148,7 +165,7 @@ class Cache
     {
 
         if (($flag & self::CACHE_FROMRAW) > 0) {
-            $result = $data = $this->mc->get($this->getNamespace() . $key);
+            $result = $data = $this->mc->get($this->prepareRawNamespace($key));
 
         } else {
 
@@ -187,40 +204,34 @@ class Cache
      */
     public function getTagsState($tags)
     {
-        $result = array();
+        $result = [];
 
         if (!is_array($tags)) {
-            $tags = array($tags);
+            $tags = [$tags];
         }
-        //$this->log(array($tags, $this->prepareRawNameTags($tags)), 'Проверяем');
 
         if (count($tags) > 0) {
             //$arTags = array();
             // 1. получаем список тегов из кеша
-            $current_in_cache = $this->mc->get($this->prepareRawNameTags($tags));
-
-            //$this->log($current_in_cache, 'В кеше');
+            $current_in_cache = $this->mc->get($this->prepareNameTags($tags));
 
             // 2. проверяем на недостабщие
-            $not_present = array_diff($this->prepareRawNameTags($tags), array_keys($current_in_cache));
-            //$this->log($not_present, 'Не хватает тегов');
+            $not_present = array_diff($this->prepareNameTags($tags), array_keys($current_in_cache));
             // 2.1. записываем недостающие к кеш
             if (count($not_present) > 0) {
                 foreach ($not_present as $v) {
-                    $time = $this->setTags(array_search($v, $this->prepareRawNameTags($tags)));
+                    $time = $this->setTags(array_search($v, $this->prepareNameTags($tags)));
                     $current_in_cache[$v] = $time;
                 }
             }
 
             // 3. формируем результирующий массив
-            foreach ($this->prepareRawNameTags($tags) as $k => $v) {
+            foreach ($this->prepareNameTags($tags) as $k => $v) {
                 $result[$k] = $current_in_cache[$v];
             }
 
 
         }
-
-        //$this->log($result, 'Возвращаем');
 
         return $result;
     }
@@ -244,14 +255,14 @@ class Cache
     {
 
         if (!is_array($tags)) {
-            $tags = array($tags);
+            $tags = [$tags];
         }
 
         $time = microtime(true);
         if (count($tags) > 0) {
             foreach ($tags as $tag) {
                 $this->log('- ' . $tag);
-                $this->mc->set($this->prepareRawNameTags($tag), $time, 0, 0);
+                $this->mc->set($this->prepareNameTags($tag), $time, 0, 0);
 
             }
         }
@@ -271,7 +282,7 @@ class Cache
     public function rm($key, $ttl_seconds = 0, $flag = 0)
     {
         if (($flag & self::CACHE_FROMRAW) > 0) {
-            $key = $this->prepareNamespace($this->getNamespace() . $key);
+            $key = $this->prepareRawNamespace($key);
         } else {
             $key = $this->prepareNamespace($key);
         }
@@ -290,7 +301,7 @@ class Cache
     public function addTags($arTags)
     {
         if ($arTags) {
-            $this->tags = array_merge($this->tags, (is_array($arTags) ? $arTags : array($arTags)));
+            $this->tags = array_merge($this->tags, (is_array($arTags) ? $arTags : [$arTags]));
         }
 
         return $this;
@@ -302,7 +313,7 @@ class Cache
      */
     private function resetTags()
     {
-        $this->tags = array();
+        $this->tags = [];
 
         return $this;
 
@@ -315,7 +326,20 @@ class Cache
      */
     public function setNamespace($namespace)
     {
-        $this->namespace = $namespace;
+        $this->namespace = ($namespace != '' ? ':' . $namespace : '');
+
+        return $this;
+
+    }
+
+    /**
+     * Устанавливает пространство имен для кеша
+     * @param string $rawNamespace пространство имен
+     * @return $this
+     */
+    public function setRawNamespace($rawNamespace)
+    {
+        $this->rawNamespace = ($rawNamespace != '' ? ':' . $rawNamespace : '');
 
         return $this;
 
@@ -325,9 +349,18 @@ class Cache
      * Получает пространство имен для кеша
      * @return string пространство имен
      */
+    public function getRawNamespace()
+    {
+        return ($this->rawNamespace != '' ? ':' . $this->rawNamespace : '');
+    }
+
+    /**
+     * Получает пространство имен для кеша
+     * @return string пространство имен
+     */
     public function getNamespace()
     {
-        return $this->namespace;
+        return $this->protectedNamespace . ($this->namespace != '' ? ':' . $this->namespace : '');
     }
 
     /**
@@ -337,14 +370,37 @@ class Cache
      */
     private function prepareNamespace($key)
     {
-        if ($this->namespace != '') {
+        if ($this->getNamespace() != '') {
             if (is_array($key) && count($key) > 0) {
                 foreach ($key as $k => $v) {
-                    $key[$k] = '[' . $this->namespace . ']::' . $v;
+                    $key[$k] = '[' . $this->getNamespace() . ']::' . $v;
                 }
 
             } else {
-                $key = '[' . $this->namespace . ']::' . $key;
+                $key = '[' . $this->getNamespace() . ']::' . $key;
+
+            }
+        }
+
+        return $key;
+
+    }
+
+    /**
+     * Подготавливает сырое имя ключа относительно пространства имен
+     * @param array|string $key
+     * @return array|string
+     */
+    private function prepareRawNamespace($key)
+    {
+        if ($this->getRawNamespace() != '') {
+            if (is_array($key) && count($key) > 0) {
+                foreach ($key as $k => $v) {
+                    $key[$k] = $this->getRawNamespace() . $v;
+                }
+
+            } else {
+                $key = $this->getRawNamespace() . $key;
 
             }
         }
@@ -358,7 +414,7 @@ class Cache
      * @param array|string $key имена ключей|ключа
      * @return array|string
      */
-    public function getRawNameKey($key)
+    public function getNameKey($key)
     {
         return $this->prepareNamespace($key);
 
@@ -369,10 +425,10 @@ class Cache
      * @param array|string $tags имена тегов|тега
      * @return array|string
      */
-    private function prepareRawNameTags($tags)
+    private function prepareNameTags($tags)
     {
         if (is_array($tags)) {
-            $new_tags = array();
+            $new_tags = [];
             if (count($tags) > 0) {
                 foreach ($tags as $k => $v) {
                     $new_tags[$v] = '{tags_' . $v . '}';
@@ -394,9 +450,9 @@ class Cache
      * @param array|string $tag имена тегов|тега
      * @return array|string
      */
-    public function getRawNameTag($tag)
+    public function getNameTag($tag)
     {
-        return $this->prepareRawNameTags($tag);
+        return $this->prepareNameTags($tag);
 
     }
 
@@ -416,7 +472,7 @@ class Cache
      */
     private function log($var, $title = '')
     {
-        if ($this->loging) {
+        if ($this->logging) {
             if ($title != '') {
                 print_r($title . ":\r\n");
             }
@@ -449,9 +505,9 @@ class Cache
      * @param boolean $state
      * @return $this
      */
-    public function setLoging($state)
+    public function setLogging($state)
     {
-        $this->loging = (bool)$state;
+        $this->logging = (bool)$state;
 
         return $this;
 
