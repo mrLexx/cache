@@ -127,7 +127,7 @@ class Cache
      * @param string $key имя ключа
      * @param mixed $value значение
      * @param int $ttl_seconds время жизни в секундах
-     * @param int $flag дополнительные параметры. Используйте JCCACHE_FROMRAW чтобы удалить сырые данные из кеша, но с учетом $this->namespace
+     * @param int $flag дополнительные параметры.
      * @return bool true если успешно, false если ошибка
      */
     public function set($key, $value, $ttl_seconds = 0, $flag = 0)
@@ -158,7 +158,7 @@ class Cache
     /**
      * Получает ключ из кеша
      * @param array|string $key имя ключа
-     * @param int $flag дополнительные параметры. Используйте JCCACHE_FROMRAW чтобы получить сырые данные из кеша, но с учетом $this->namespace
+     * @param int $flag дополнительные параметры. Используйте CACHE_FROMRAW чтобы получить сырые данные из кеша, но с учетом $this->namespace
      * @return array|string значение ключа, или ассоциативный массив, если был запрос по нескольким ключам. В этом случае в качестве индексов массива являются ключи из запроса.
      */
     public function get($key, $flag = 0)
@@ -274,12 +274,11 @@ class Cache
     /**
      * Удаляет ключ из кеша
      * @param string $key имя ключа
-     * @param int $ttl_seconds
-     * @param int $flag дополнительные параметры. Используйте JCCACHE_FROMRAW чтобы удалить сырые данные из кеша, но с учетом $this->namespace
+     * @param int $flag дополнительные параметры. Используйте CACHE_FROMRAW чтобы удалить сырые данные из кеша, но с учетом $this->rawNamespace
      * @return bool
      */
 
-    public function rm($key, $ttl_seconds = 0, $flag = 0)
+    public function rm($key, $flag = 0)
     {
         if (($flag & self::CACHE_FROMRAW) > 0) {
             $key = $this->prepareRawNamespace($key);
@@ -289,7 +288,7 @@ class Cache
 
         $this->resetTags();
 
-        return $this->mc->delete($key, $ttl_seconds);
+        return $this->mc->delete($key);
 
     }
 
