@@ -86,38 +86,36 @@ final class CacheTest extends TestCase
 
         $cache = new Cache([['host' => 'localhost'],]);
 
-        $cache->set($key, $val01, 0, Cache::CACHE_ONLYRAW);
+        $cache->set($key, $val01, 0, Cache::CACHE_ONLY_RAW);
         $cache->set($key, $val02);
 
-        $cache->get($key, Cache::CACHE_FROMRAW);
+        $this->assertNotEquals($cache->getRaw($key), $cache->get($key));
 
-        $this->assertNotEquals($cache->get($key, Cache::CACHE_FROMRAW), $cache->get($key));
-
-        $stack[] = [$val01, $cache->get($key, Cache::CACHE_FROMRAW)];
+        $stack[] = [$val01, $cache->getRaw($key)];
         $stack[] = [$val02, $cache->get($key)];
 
         $key = $this->randomString();
         $val = $this->randomString();
 
-        $cache->set($key, $val, 0, Cache::CACHE_ADDRAW);
-        $stack[] = [$cache->get($key, Cache::CACHE_FROMRAW), $cache->get($key)];
+        $cache->set($key, $val, 0, Cache::CACHE_AND_RAW);
+        $stack[] = [$cache->getRaw($key), $cache->get($key)];
 
-        $cache->set($key, $val, 0, Cache::CACHE_ADDRAW);
-        $stack[] = [$cache->get($key, Cache::CACHE_FROMRAW), $cache->get($key)];
-        $cache->rm($key, Cache::CACHE_ONLYRAW);
-        $stack[] = [false, $cache->get($key, Cache::CACHE_FROMRAW)];
+        $cache->set($key, $val, 0, Cache::CACHE_AND_RAW);
+        $stack[] = [$cache->getRaw($key), $cache->get($key)];
+        $cache->rm($key, Cache::CACHE_ONLY_RAW);
+        $stack[] = [false, $cache->getRaw($key)];
         $stack[] = [$val, $cache->get($key)];
 
-        $cache->set($key, $val, 0, Cache::CACHE_ADDRAW);
-        $stack[] = [$cache->get($key, Cache::CACHE_FROMRAW), $cache->get($key)];
+        $cache->set($key, $val, 0, Cache::CACHE_AND_RAW);
+        $stack[] = [$cache->getRaw($key), $cache->get($key)];
         $cache->rm($key);
-        $stack[] = [$val, $cache->get($key, Cache::CACHE_FROMRAW)];
+        $stack[] = [$val, $cache->getRaw($key)];
         $stack[] = [false, $cache->get($key)];
 
-        $cache->set($key, $val, 0, Cache::CACHE_ADDRAW);
-        $stack[] = [$cache->get($key, Cache::CACHE_FROMRAW), $cache->get($key)];
-        $cache->rm($key, Cache::CACHE_FROMRAW);
-        $stack[] = [false, $cache->get($key, Cache::CACHE_FROMRAW)];
+        $cache->set($key, $val, 0, Cache::CACHE_AND_RAW);
+        $stack[] = [$cache->getRaw($key), $cache->get($key)];
+        $cache->rm($key, Cache::CACHE_AND_RAW);
+        $stack[] = [false, $cache->getRaw($key)];
         $stack[] = [false, $cache->get($key)];
 
         return $stack;

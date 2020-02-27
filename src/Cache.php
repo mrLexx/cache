@@ -7,9 +7,8 @@ use Memcache;
 
 class Cache
 {
-    const CACHE_ONLYRAW = 1;
-    const CACHE_ADDRAW = 2;
-    const CACHE_FROMRAW = 4;
+    const CACHE_ONLY_RAW = 1;
+    const CACHE_AND_RAW = 2;
 
     /**
      * массив с текущими тегами для кеша, сбрасывается после работы с кешем
@@ -134,11 +133,11 @@ class Cache
     {
         $result = false;
 
-        if (($flag & self::CACHE_ADDRAW) > 0 || ($flag & self::CACHE_ONLYRAW) > 0) {
+        if (($flag & self::CACHE_AND_RAW) > 0 || ($flag & self::CACHE_ONLY_RAW) > 0) {
             $result = $this->mc->set($this->prepareRawNamespace($key), $value, 0, $ttl_seconds);
         }
 
-        if (($flag & self::CACHE_ONLYRAW) == 0) {
+        if (($flag & self::CACHE_ONLY_RAW) == 0) {
 
             $key = $this->prepareNamespace($key);
             $value = [
@@ -155,16 +154,21 @@ class Cache
 
     }
 
+    public function getRaw($key)
+    {
+        return $this->get($key, self::CACHE_ONLY_RAW);
+    }
+
     /**
      * Получает ключ из кеша
      * @param array|string $key имя ключа
-     * @param int $flag дополнительные параметры. Используйте CACHE_FROMRAW чтобы получить сырые данные из кеша, но с учетом $this->namespace
+     * @param int $flag дополнительные параметры. Используйте CACHE_ONLY_RAW чтобы получить сырые данные из кеша, но с учетом $this->namespace
      * @return array|string значение ключа, или ассоциативный массив, если был запрос по нескольким ключам. В этом случае в качестве индексов массива являются ключи из запроса.
      */
     public function get($key, $flag = 0)
     {
 
-        if (($flag & self::CACHE_FROMRAW) > 0) {
+        if (($flag & self::CACHE_ONLY_RAW) > 0) {
             $result = $data = $this->mc->get($this->prepareRawNamespace($key));
 
         } else {
@@ -274,19 +278,18 @@ class Cache
     /**
      * Удаляет ключ из кеша
      * @param string $key имя ключа
-     * @param int $flag дополнительные параметры. Используйте CACHE_ONLYRAW|CACHE_FROMRAW чтобы удалить сырые данные только/также из сырого кеша, но с учетом $this->rawNamespace
+     * @param int $flag дополнительные параметры. Используйте CACHE_ONLYRAW|CACHE_AND_RAW чтобы удалить сырые данные только/также из сырого кеша, но с учетом $this->rawNamespace
      * @return bool
      */
 
     public function rm($key, $flag = 0)
     {
 
-        if (($flag & self::CACHE_ONLYRAW) > 0) {
+        if (($flag & self::CACHE_ONLY_RAW) > 0) {
             $return = $this->mc->delete($this->prepareRawNamespace($key));
         } else {
-
             $return = $this->mc->delete($this->prepareNamespace($key));
-            if ($return && ($flag & self::CACHE_FROMRAW) > 0) {
+            if ($return && ($flag & self::CACHE_AND_RAW) > 0) {
                 $return = $this->mc->delete($this->prepareRawNamespace($key));
             }
         }
