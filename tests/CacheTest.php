@@ -79,8 +79,8 @@ final class CacheTest extends TestCase
 
         $key = $this->randomString();
 
-        $val01 = 'Raw_' . $this->randomString();
-        $val02 = 'Usual_' . $this->randomString();
+        $val01 = $this->randomString();
+        $val02 = $this->randomString();
 
         $this->assertNotEquals($val01, $val02);
 
@@ -96,6 +96,11 @@ final class CacheTest extends TestCase
         $stack[] = [$val01, $cache->get($key, Cache::CACHE_FROMRAW)];
         $stack[] = [$val02, $cache->get($key)];
 
+
+        $key = $this->randomString();
+        $val = $this->randomString();
+        $cache->set($key, $val, 0, Cache::CACHE_ADDRAW);
+        $stack[] = [$cache->get($key, Cache::CACHE_FROMRAW), $cache->get($key)];
 
         return $stack;
     }
