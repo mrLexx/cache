@@ -169,7 +169,7 @@ class Cache
     {
 
         if (($flag & self::CACHE_ONLY_RAW) > 0) {
-            $result = $data = $this->mc->get($this->prepareRawNamespace($key));
+            $result = $this->mc->get($this->prepareRawNamespace($key));
 
         } else {
 
