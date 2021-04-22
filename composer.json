@@ -14,7 +14,7 @@
         "sort-packages": true
     },
     "require": {
-        "php": "^5.6|^7.0|~8.0",
+        "php": "^5.6 || ^7.0 || ~8.0",
         "ext-memcache": "*"
     },
     "require-dev": {
