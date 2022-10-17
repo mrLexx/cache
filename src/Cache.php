@@ -1,6 +1,6 @@
 <?php
 
-namespace JustCommunication;
+namespace mrLexx;
 
 use Memcache;
 
@@ -27,7 +27,7 @@ class Cache
      * текущее пространство имен для кеша
      * @var string
      */
-    private $protectedNamespace = 'just-communication/cache';
+    private $protectedNamespace = 'mr-lexx/cache';
 
     /**
      * состояние коннекта к кешу

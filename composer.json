@@ -1,5 +1,5 @@
 {
-    "name": "just-communication/cache",
+    "name": "mr-lexx/cache",
     "description": "Memcache library with tags support",
     "minimum-stability": "dev",
     "type": "library",
@@ -21,7 +21,7 @@
         "phpunit/phpunit": "^5"
     },
     "autoload": {
-        "psr-4": {"JustCommunication\\": "src/"}
+        "psr-4": {"mrLexx\\": "src/"}
     },
     "scripts": {
         "test": "phpunit --bootstrap vendor/autoload.php tests --colors=always"

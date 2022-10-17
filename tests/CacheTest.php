@@ -1,6 +1,6 @@
 <?php
 
-use JustCommunication\Cache;
+use mrLexx\Cache;
 use PHPUnit\Framework\TestCase;
 
 final class CacheTest extends TestCase
